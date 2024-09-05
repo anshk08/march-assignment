@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import TodoItem from "./todo-item";
 import TodoForm from "./todo-form";
+import { LoaderCircle } from "lucide-react";
 
 interface Todo {
   id: number;
@@ -11,13 +12,14 @@ interface Todo {
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchTodos = async () => {
-    const res = await fetch(
-      "https://jsonplaceholder.typicode.com/todos?_limit=1"
-    );
+    setLoading(true);
+    const res = await fetch("/api/todos");
     const data: Todo[] = await res.json();
     setTodos(data);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -25,20 +27,31 @@ export default function TodoList() {
   }, []);
 
   const handleCreate = async (todo: { title: string }) => {
-    const newTodo: Todo = {
-      id: todos.length + 1,
-      title: todo.title,
-      completed: false,
-    };
+    const res = await fetch("/api/todos", {
+      method: "POST",
+      body: JSON.stringify(todo),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const newTodo = await res.json();
     setTodos([...todos, newTodo]);
   };
 
   const handleEdit = async (id: number, title: string) => {
-    const updatedTodo: Todo = { id, title, completed: false };
+    const res = await fetch(`/api/todos`, {
+      method: "PATCH",
+      body: JSON.stringify({ id, title }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const updatedTodo = await res.json();
     setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
   };
 
   const handleDelete = async (id: number) => {
+    await fetch(`/api/todos?id=${id}`, { method: "DELETE" });
     setTodos(todos.filter((todo) => todo.id !== id));
   };
 
@@ -48,14 +61,18 @@ export default function TodoList() {
         <TodoForm onSubmit={handleCreate} />
       </div>
       <div className="w-[100vw] px-4 flex flex-col items-center justify-center break-normal">
-        {todos.map((todo) => (
-          <TodoItem
-            key={todo.id}
-            todo={todo}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ))}
+        {loading ? (
+          <LoaderCircle className="text-blue-500 animate-spin" />
+        ) : (
+          todos.map((todo) => (
+            <TodoItem
+              key={todo.id}
+              todo={todo}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))
+        )}
       </div>
     </div>
   );

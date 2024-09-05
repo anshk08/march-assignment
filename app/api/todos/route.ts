@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const API_URL = "https://jsonplaceholder.typicode.com/todos";
 
 export async function GET() {
-  const response = await fetch(API_URL);
+  const response = await fetch(`${API_URL}?_limit=5`);
   const todos = await response.json();
   return NextResponse.json(todos);
 }

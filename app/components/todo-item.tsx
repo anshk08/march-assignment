@@ -19,10 +19,11 @@ interface TodoItemProps {
 export default function TodoItem({ todo, onEdit, onDelete }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editTitle, setEditTitle] = useState<string>(todo.title);
-  const [completed, setCompleted] = useState(false);
+  const [completed, setCompleted] = useState<boolean>(todo.completed);
 
   const handleComplete = () => {
     setCompleted(!completed);
+    onEdit(todo.id, todo.title);
   };
 
   const handleSave = () => {
